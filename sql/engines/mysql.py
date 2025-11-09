@@ -5,7 +5,7 @@ import logging
 import traceback
 import time
 import MySQLdb
-import pymysql
+from pymysql.converters import escape_string as pymysql_escape_string
 
 import schemaobject
 import sqlparse
@@ -108,7 +108,12 @@ class MysqlEngine(EngineBase):
 
     def escape_string(self, value: str) -> str:
         """字符串参数转义"""
-        return pymysql.escape_string(value)
+        if value is None:
+            return value
+        result = pymysql_escape_string(value)
+        if isinstance(result, bytes):
+            return result.decode("utf-8")
+        return result
 
     @property
     def auto_backup(self):
