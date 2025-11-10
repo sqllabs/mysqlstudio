@@ -69,7 +69,18 @@ def del_binlog(request):
     if binlog:
         query_engine = get_engine(instance=instance)
         binlog = query_engine.escape_string(binlog)
-        query_result = query_engine.query(sql=rf"purge master logs to '{binlog}';")
+
+        purge_stmt = "master"
+        server_version = None
+        if hasattr(query_engine, "server_version"):
+            try:
+                server_version = query_engine.server_version
+            except Exception as exc:
+                logger.warning("Failed to get server version for %s: %s", instance, exc)
+        if server_version and server_version >= (8, 0, 23):
+            purge_stmt = "binary"
+
+        query_result = query_engine.query(sql=rf"purge {purge_stmt} logs to '{binlog}';")
         if query_result.error is None:
             result = {"status": 0, "msg": "清理成功", "data": ""}
         else:
