@@ -66,8 +66,14 @@ def query_priv_check(user, instance, db_name, sql_content, limit_num):
     # 仅MySQL做表权限校验
     if instance.db_type == "mysql":
         try:
-            # explain和show create跳过权限校验
-            if re.match(r"^explain|^show\s+create", sql_content, re.I):
+            # Skip whitelist statements that do not touch user data tables
+            if re.match(
+                r"^explain"
+                r"|^show\s+(create|replica\s+status|slave\s+status|master\s+status|"
+                r"processlist|variables|status|databases|tables|grants|index|columns)",
+                sql_content,
+                re.I,
+            ):
                 return result
             # 其他权限校验
             table_ref = _table_ref(sql_content, instance, db_name)
