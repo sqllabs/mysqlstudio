@@ -201,7 +201,7 @@ class TestMysql(TestCase):
         self.assertDictEqual(
             check_result,
             {
-                "msg": "不支持的查询语法类型!",
+                "msg": "Unsupported query syntax!",
                 "bad_query": True,
                 "filtered_sql": "-- 测试",
                 "has_star": False,
@@ -215,10 +215,24 @@ class TestMysql(TestCase):
         self.assertDictEqual(
             check_result,
             {
-                "msg": "不支持的查询语法类型!",
+                "msg": "Unsupported query syntax!",
                 "bad_query": True,
                 "filtered_sql": "update user set id=0",
                 "has_star": False,
+            },
+        )
+
+    def test_query_check_star_with_syntax_error(self):
+        new_engine = MysqlEngine(instance=self.ins1)
+        sql_with_star = "selec * from usertable"
+        check_result = new_engine.query_check(db_name="some_db", sql=sql_with_star)
+        self.assertDictEqual(
+            check_result,
+            {
+                "msg": "Unsupported query syntax!",
+                "bad_query": True,
+                "filtered_sql": "selec * from usertable",
+                "has_star": True,
             },
         )
 

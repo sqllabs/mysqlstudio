@@ -619,28 +619,36 @@ class MysqlEngine(EngineBase):
             result["msg"] = "没有有效的SQL语句"
         if re.match(r"^select|^show|^explain", sql, re.I) is None:
             result["bad_query"] = True
-            result["msg"] = "不支持的查询语法类型!"
+            result["msg"] = "Unsupported query syntax!"
         if "*" in sql:
             result["has_star"] = True
-            result["msg"] = "SQL语句中含有 * "
+            if not result["bad_query"]:
+                result["msg"] = "Query contains '*' wildcard"
         # select语句先使用Explain判断语法是否正确
-        if re.match(r"^select", sql, re.I):
+        if not result["bad_query"] and re.match(r"^select", sql, re.I):
             explain_result = self.query(db_name=db_name, sql=f"explain {sql}")
             if explain_result.error:
                 result["bad_query"] = True
                 result["msg"] = explain_result.error
         # 不应该查看mysql.user表
-        if re.match(
-            ".*(\\s)+(mysql|`mysql`)(\\s)*\\.(\\s)*(user|`user`)((\\s)*|;).*",
-            sql.lower().replace("\n", ""),
-        ) or (
-            db_name == "mysql"
-            and re.match(
-                ".*(\\s)+(user|`user`)((\\s)*|;).*", sql.lower().replace("\n", "")
+        if (
+            not result["bad_query"]
+            and (
+                re.match(
+                    ".*(\\s)+(mysql|`mysql`)(\\s)*\\.(\\s)*(user|`user`)((\\s)*|;).*",
+                    sql.lower().replace("\n", ""),
+                )
+                or (
+                    db_name == "mysql"
+                    and re.match(
+                        ".*(\\s)+(user|`user`)((\\s)*|;).*",
+                        sql.lower().replace("\n", ""),
+                    )
+                )
             )
         ):
             result["bad_query"] = True
-            result["msg"] = "您无权查看该表"
+            result["msg"] = "You are not allowed to query this table"
 
         return result
 
