@@ -647,6 +647,18 @@ class MysqlEngine(EngineBase):
     def filter_sql(self, sql="", limit_num=0):
         # 对查询sql增加limit限制,limit n 或 limit n,n 或 limit n offset n统一改写成limit n
         sql = sql.rstrip(";").strip()
+        if not sql:
+            return sql
+
+        try:
+            limit_value = int(limit_num)
+        except (TypeError, ValueError):
+            limit_value = 0
+
+        if limit_value <= 0:
+            # limit_num=0 stands for "max rows", so do not append a LIMIT clause
+            return f"{sql};"
+
         if re.match(r"^select", sql, re.I):
             # LIMIT N
             limit_n = re.compile(r"limit\s+(\d+)\s*$", re.I)
@@ -655,21 +667,21 @@ class MysqlEngine(EngineBase):
             # LIMIT M,N
             offset_comma_limit = re.compile(r"limit\s+(\d+)\s*,\s*(\d+)\s*$", re.I)
             if limit_n.search(sql):
-                sql_limit = limit_n.search(sql).group(1)
-                limit_num = min(int(limit_num), int(sql_limit))
-                sql = limit_n.sub(f"limit {limit_num};", sql)
+                sql_limit = int(limit_n.search(sql).group(1))
+                limit_value = min(limit_value, sql_limit)
+                sql = limit_n.sub(f"limit {limit_value};", sql)
             elif limit_offset.search(sql):
-                sql_limit = limit_offset.search(sql).group(1)
+                sql_limit = int(limit_offset.search(sql).group(1))
                 sql_offset = limit_offset.search(sql).group(2)
-                limit_num = min(int(limit_num), int(sql_limit))
-                sql = limit_offset.sub(f"limit {limit_num} offset {sql_offset};", sql)
+                limit_value = min(limit_value, sql_limit)
+                sql = limit_offset.sub(f"limit {limit_value} offset {sql_offset};", sql)
             elif offset_comma_limit.search(sql):
                 sql_offset = offset_comma_limit.search(sql).group(1)
-                sql_limit = offset_comma_limit.search(sql).group(2)
-                limit_num = min(int(limit_num), int(sql_limit))
-                sql = offset_comma_limit.sub(f"limit {sql_offset},{limit_num};", sql)
+                sql_limit = int(offset_comma_limit.search(sql).group(2))
+                limit_value = min(limit_value, sql_limit)
+                sql = offset_comma_limit.sub(f"limit {sql_offset},{limit_value};", sql)
             else:
-                sql = f"{sql} limit {limit_num};"
+                sql = f"{sql} limit {limit_value};"
         else:
             sql = f"{sql};"
         return sql
