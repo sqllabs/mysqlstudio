@@ -77,6 +77,25 @@ def query_priv_check(user, instance, db_name, sql_content, limit_num):
                 return result
             # 其他权限校验
             table_ref = _table_ref(sql_content, instance, db_name)
+            system_schemas = {"information_schema", "performance_schema", "sys"}
+            filtered_tables = []
+            for table in table_ref:
+                schema_name = table.get("schema")
+                if (
+                    schema_name
+                    and schema_name.strip("`").lower() in system_schemas
+                ):
+                    logger.debug(
+                        "skip privilege check for system schema table %s.%s",
+                        schema_name,
+                        table.get("name"),
+                    )
+                    continue
+                filtered_tables.append(table)
+            if not filtered_tables:
+                result["data"]["limit_num"] = limit_num
+                return result
+            table_ref = filtered_tables
             # 循环验证权限，可能存在性能问题，但一次查询涉及的库表数量有限
             for table in table_ref:
                 # 既无库权限也无表权限则鉴权失败

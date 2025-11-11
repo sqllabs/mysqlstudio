@@ -582,6 +582,83 @@ class TestQueryPrivilegesCheck(TestCase):
             r, {"data": {"limit_num": 10, "priv_check": True}, "msg": "ok", "status": 0}
         )
 
+    @patch(
+        "sql.query_privileges._table_ref",
+        return_value=[{"schema": "information_schema", "name": "tables"}],
+    )
+    def test_query_priv_check_system_schema_information(self, __table_ref):
+        """information_schema query should bypass privilege check"""
+        r = sql.query_privileges.query_priv_check(
+            user=self.user,
+            instance=self.slave,
+            db_name=self.db_name,
+            sql_content="select * from information_schema.tables;",
+            limit_num=100,
+        )
+        self.assertDictEqual(
+            r,
+            {"data": {"limit_num": 100, "priv_check": True}, "msg": "ok", "status": 0},
+        )
+
+    @patch(
+        "sql.query_privileges._table_ref",
+        return_value=[{"schema": "performance_schema", "name": "events"}],
+    )
+    def test_query_priv_check_system_schema_performance(self, __table_ref):
+        """performance_schema query should bypass privilege check"""
+        r = sql.query_privileges.query_priv_check(
+            user=self.user,
+            instance=self.slave,
+            db_name=self.db_name,
+            sql_content="select * from performance_schema.events;",
+            limit_num=200,
+        )
+        self.assertDictEqual(
+            r,
+            {"data": {"limit_num": 200, "priv_check": True}, "msg": "ok", "status": 0},
+        )
+
+    @patch(
+        "sql.query_privileges._table_ref",
+        return_value=[
+            {"schema": "sys", "name": "schema_table_statistics"},
+            {"schema": "archery", "name": "sql_users"},
+        ],
+    )
+    @patch("sql.query_privileges._db_priv", return_value=50)
+    @patch("sql.query_privileges._tb_priv", return_value=False)
+    def test_query_priv_check_mixed_schema(self, __tb_priv, __db_priv, __table_ref):
+        """mixed query should only check privileges for user schemas"""
+        r = sql.query_privileges.query_priv_check(
+            user=self.user,
+            instance=self.slave,
+            db_name=self.db_name,
+            sql_content="select * from sys.schema_table_statistics union all select * from archery.sql_users;",
+            limit_num=80,
+        )
+        self.assertDictEqual(
+            r,
+            {"data": {"limit_num": 50, "priv_check": True}, "msg": "ok", "status": 0},
+        )
+
+    @patch(
+        "sql.query_privileges._table_ref",
+        return_value=[{"schema": "`INFORMATION_SCHEMA`", "name": "TABLES"}],
+    )
+    def test_query_priv_check_system_schema_backtick(self, __table_ref):
+        """system schemas with backticks should also be detected"""
+        r = sql.query_privileges.query_priv_check(
+            user=self.user,
+            instance=self.slave,
+            db_name=self.db_name,
+            sql_content="select * from `INFORMATION_SCHEMA`.TABLES;",
+            limit_num=120,
+        )
+        self.assertDictEqual(
+            r,
+            {"data": {"limit_num": 120, "priv_check": True}, "msg": "ok", "status": 0},
+        )
+
     @patch("sql.query_privileges._table_ref")
     @patch("sql.query_privileges._tb_priv", return_value=False)
     @patch("sql.query_privileges._db_priv", return_value=False)
