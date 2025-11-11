@@ -705,61 +705,61 @@ class MysqlEngine(EngineBase):
         return mask_result
 
     def execute_check(self, db_name=None, sql=""):
-        """上线单执行前的检查, 返回Review set"""
-        # 进行Inception检查，获取检测结果
+        """Pre-execution inspection for change workflows, returning a ReviewSet"""
+        # Run goInception for initial checks
         try:
             check_result = self.inc_engine.execute_check(
                 instance=self.instance, db_name=db_name, sql=sql
             )
         except Exception as e:
             logger.debug(
-                f"{self.inc_engine.name}检测语句报错：错误信息{traceback.format_exc()}"
+                f"{self.inc_engine.name} failed to analyze SQL: {traceback.format_exc()}"
             )
             raise RuntimeError(
-                f"{self.inc_engine.name}检测语句报错，请注意检查系统配置中{self.inc_engine.name}配置，错误信息：\n{e}"
+                f"{self.inc_engine.name} reported an error; please check its configuration. Details:\n{e}"
             )
 
-        # 判断Inception检测结果
+        # Handle goInception validation result
         if check_result.error:
             logger.debug(
-                f"{self.inc_engine.name}检测语句报错：错误信息{check_result.error}"
+                f"{self.inc_engine.name} reported SQL error: {check_result.error}"
             )
             raise RuntimeError(
-                f"{self.inc_engine.name}检测语句报错，错误信息：\n{check_result.error}"
+                f"{self.inc_engine.name} detected SQL error:\n{check_result.error}"
             )
 
-        # 禁用/高危语句检查
+        # Check disabled/critical statements
         critical_ddl_regex = self.config.get("critical_ddl_regex", "")
         ddl_dml_separation = self.config.get("ddl_dml_separation", False)
         p = re.compile(critical_ddl_regex)
-        # 获取语句类型：DDL或者DML
+        # Track statement type (DDL/DML)
         ddl_dml_flag = ""
         for row in check_result.rows:
             statement = row.sql
-            # 去除注释
+            # Remove comments
             statement = remove_comments(statement, db_type="mysql")
-            # 获取提交类型
+            # Determine syntax type
             syntax_type = get_syntax_type(statement, parser=False, db_type="mysql")
-            # 禁用语句
+            # Block unsupported statements
             if re.match(r"^select", statement.lower()):
                 check_result.error_count += 1
-                row.stagestatus = "驳回不支持语句"
+                row.stagestatus = "Rejected unsupported statement"
                 row.errlevel = 2
-                row.errormessage = "仅支持DML和DDL语句，查询语句请使用SQL查询功能！"
-            # 高危语句
-            elif critical_ddl_regex and p.match(statement.strip().lower()):
+                row.errormessage = "Only DML and DDL statements are supported; run queries via SQL query page."
+            # Critical statements
+            elif critical_ddl_regex and p.search(statement.strip().lower()):
                 check_result.error_count += 1
-                row.stagestatus = "驳回高危SQL"
+                row.stagestatus = "Rejected critical SQL"
                 row.errlevel = 2
-                row.errormessage = "禁止提交匹配" + critical_ddl_regex + "条件的语句！"
+                row.errormessage = "Submitting statements matching " + critical_ddl_regex + " is forbidden."
             elif ddl_dml_separation and syntax_type in ("DDL", "DML"):
                 if ddl_dml_flag == "":
                     ddl_dml_flag = syntax_type
                 elif ddl_dml_flag != syntax_type:
                     check_result.error_count += 1
-                    row.stagestatus = "驳回不支持语句"
+                    row.stagestatus = "Rejected unsupported statement"
                     row.errlevel = 2
-                    row.errormessage = "DDL语句和DML语句不能同时执行！"
+                    row.errormessage = "DDL and DML statements cannot be mixed in one workflow!"
         return check_result
 
     def execute_workflow(self, workflow):

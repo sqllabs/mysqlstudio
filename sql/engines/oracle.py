@@ -769,7 +769,7 @@ class OracleEngine(EngineBase):
                         sql=sqlitem.statement,
                     )
                 # 高危语句
-                elif critical_ddl_regex and p.match(sql_lower.strip()):
+                elif critical_ddl_regex and p.search(sql_lower.strip()):
                     result = ReviewResult(
                         id=line,
                         errlevel=2,

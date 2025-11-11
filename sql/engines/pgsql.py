@@ -285,7 +285,7 @@ class PgSQLEngine(EngineBase):
                     sql=statement,
                 )
             # 高危语句
-            elif critical_ddl_regex and p.match(statement.strip().lower()):
+            elif critical_ddl_regex and p.search(statement.strip().lower()):
                 result = ReviewResult(
                     id=line,
                     errlevel=2,

@@ -50,7 +50,7 @@ class DorisEngine(MysqlEngine):
         return super(DorisEngine, self).kill(thread_ids, thread_ids_check)
 
     def execute_check(self, db_name=None, sql=""):
-        """上线单执行前的检查, 返回Review set"""
+        """Pre-check before execution, returning a ReviewSet"""
         check_result = ReviewSet(full_sql=sql)
         # 禁用/高危语句检查
         line = 1
@@ -59,33 +59,35 @@ class DorisEngine(MysqlEngine):
         check_result.syntax_type = 2  # TODO 工单类型 0、其他 1、DDL，2、DML
         for statement in sqlparse.split(sql):
             statement = sqlparse.format(statement, strip_comments=True)
-            # 禁用语句
+            # block unsupported statements
             if re.match(r"^select|^show|^explain", statement.lower()):
                 result = ReviewResult(
                     id=line,
                     errlevel=2,
-                    stagestatus="驳回不支持语句",
-                    errormessage="仅支持DML和DDL语句，查询语句请使用SQL查询功能！",
+                    stagestatus="Rejected unsupported statement",
+                    errormessage="Only DML and DDL statements are supported; run queries via SQL query page.",
                     sql=statement,
                 )
-            # 高危语句
-            elif critical_ddl_regex and p.match(statement.strip().lower()):
+            # critical statements
+            elif critical_ddl_regex and p.search(statement.strip().lower()):
                 result = ReviewResult(
                     id=line,
                     errlevel=2,
-                    stagestatus="驳回高危SQL",
-                    errormessage="禁止提交匹配" + critical_ddl_regex + "条件的语句！",
+                    stagestatus="Rejected critical SQL",
+                    errormessage="Submitting statements matching "
+                    + critical_ddl_regex
+                    + " is forbidden.",
                     sql=statement,
                 )
-            # 驳回未带where数据修改语句，如确实需做全部删除或更新，显示的带上where 1=1
+            # reject statements without WHERE conditions
             elif re.match(
                 r"^update((?!where).)*$|^delete((?!where).)*$", statement.lower()
             ):
                 result = ReviewResult(
                     id=line,
                     errlevel=2,
-                    stagestatus="驳回未带where数据修改",
-                    errormessage="数据修改需带where条件！",
+                    stagestatus="Rejected missing WHERE clause",
+                    errormessage="Data modification statements must include a WHERE clause.",
                     sql=statement,
                 )
             # 正常语句

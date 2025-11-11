@@ -805,6 +805,23 @@ class TestPgSQL(TestCase):
         self.assertIsInstance(check_result, ReviewSet)
         self.assertEqual(check_result.rows[0].__dict__, row.__dict__)
 
+    def test_execute_check_critical_sql_partial_match(self):
+        regex = r"(?i)drop\s+column"
+        self.sys_config.set("critical_ddl_regex", regex)
+        self.sys_config.get_all_config()
+        sql = "alter table users drop column email"
+        row = ReviewResult(
+            id=1,
+            errlevel=2,
+            stagestatus="Rejected critical SQL",
+            errormessage="Submitting statements matching " + regex + " is forbidden.",
+            sql=sql,
+        )
+        new_engine = PgSQLEngine(instance=self.ins)
+        check_result = new_engine.execute_check(db_name="archery", sql=sql)
+        self.assertIsInstance(check_result, ReviewSet)
+        self.assertEqual(check_result.rows[0].__dict__, row.__dict__)
+
     def test_execute_check_normal_sql(self):
         self.sys_config.purge()
         sql = "alter table tb set id=1"
@@ -1392,6 +1409,26 @@ class TestOracle(TestCase):
             sql=sqlparse.format(
                 sql, strip_comments=True, reindent=True, keyword_case="lower"
             ),
+        )
+        new_engine = OracleEngine(instance=self.ins)
+        check_result = new_engine.execute_check(db_name="archery", sql=sql)
+        self.assertIsInstance(check_result, ReviewSet)
+        self.assertEqual(check_result.rows[0].__dict__, row.__dict__)
+
+    def test_execute_check_critical_sql_partial_match(self):
+        regex = r"(?i)drop\s+column"
+        self.sys_config.set("critical_ddl_regex", regex)
+        self.sys_config.get_all_config()
+        sql = "alter table users drop column email"
+        formatted_sql = sqlparse.format(
+            sql, strip_comments=True, reindent=True, keyword_case="lower"
+        )
+        row = ReviewResult(
+            id=1,
+            errlevel=2,
+            stagestatus="Rejected critical SQL",
+            errormessage="Submitting statements matching " + regex + " is forbidden.",
+            sql=formatted_sql,
         )
         new_engine = OracleEngine(instance=self.ins)
         check_result = new_engine.execute_check(db_name="archery", sql=sql)
@@ -2386,6 +2423,18 @@ class TestClickHouse(TestCase):
         self.assertEqual(
             check_result.rows[0].errlevel,
             0,
+        )
+
+    def test_execute_check_critical_sql_partial_match(self):
+        regex = r"(?i)drop\s+column"
+        self.sys_config.set("critical_ddl_regex", regex)
+        self.sys_config.get_all_config()
+        new_engine = ClickHouseEngine(instance=self.ins1)
+        sql = "alter table tb_test drop column remark"
+        check_result = new_engine.execute_check(db_name="some_db", sql=sql)
+        self.assertEqual(
+            check_result.rows[0].errormessage,
+            "Submitting statements matching " + regex + " is forbidden.",
         )
 
     def test_filter_sql_with_delimiter(self):

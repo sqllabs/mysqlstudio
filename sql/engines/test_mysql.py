@@ -76,13 +76,13 @@ class TestMysql(TestCase):
 
     @patch("MySQLdb.connect")
     def test_get_tables_metas_data(self, connect):
-        """增加单元测试方法。test_get_tables_metas_data"""
+        """Additional unit test: test_get_tables_metas_data"""
         mock_conn = Mock()
         mock_cursor = Mock()
         connect.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
 
-        # 模拟查询结果
+        # Mock query results
         tables_result = [{"TABLE_SCHEMA": "test_db", "TABLE_NAME": "test_table"}]
 
         columns_result = [
@@ -105,28 +105,27 @@ class TestMysql(TestCase):
                 "COLUMN_COMMENT": "",
             },
         ]
-        # 创建要测试的类的实例
+        # Instantiate engine and mock query method
         new_engine = MysqlEngine(instance=self.ins1)
-        # Mock self.query 方法
         new_engine.query = Mock()
         new_engine.query.side_effect = [
-            Mock(rows=tables_result),  # 模拟 tbs 结果
-            Mock(rows=columns_result),  # 模拟 columns 结果
+            Mock(rows=tables_result),  # mock tables result
+            Mock(rows=columns_result),  # mock columns result
         ]
-        # 调用要测试的方法
+        # Call target method
         result = new_engine.get_tables_metas_data(db_name="test_db")
 
-        # 断言返回结果是否符合预期
+        # Assert result matches expectation
         expected_result = [
             {
                 "ENGINE_KEYS": [
-                    {"key": "COLUMN_NAME", "value": "字段名"},
-                    {"key": "COLUMN_TYPE", "value": "数据类型"},
-                    {"key": "COLUMN_DEFAULT", "value": "默认值"},
-                    {"key": "IS_NULLABLE", "value": "允许非空"},
-                    {"key": "EXTRA", "value": "自动递增"},
-                    {"key": "COLUMN_KEY", "value": "是否主键"},
-                    {"key": "COLUMN_COMMENT", "value": "备注"},
+                    {"key": "COLUMN_NAME", "value": "Column name"},
+                    {"key": "COLUMN_TYPE", "value": "Column type"},
+                    {"key": "COLUMN_DEFAULT", "value": "Default value"},
+                    {"key": "IS_NULLABLE", "value": "Nullable"},
+                    {"key": "EXTRA", "value": "Auto increment"},
+                    {"key": "COLUMN_KEY", "value": "Primary key"},
+                    {"key": "COLUMN_COMMENT", "value": "Comment"},
                 ],
                 "TABLE_INFO": {"TABLE_SCHEMA": "test_db", "TABLE_NAME": "test_table"},
                 "COLUMNS": [
@@ -190,20 +189,20 @@ class TestMysql(TestCase):
 
     def testQueryCheck(self):
         new_engine = MysqlEngine(instance=self.ins1)
-        sql_without_limit = "-- 测试\n select user from usertable"
+        sql_without_limit = "-- test\n select user from usertable"
         check_result = new_engine.query_check(db_name="some_db", sql=sql_without_limit)
         self.assertEqual(check_result["filtered_sql"], "select user from usertable")
 
     def test_query_check_wrong_sql(self):
         new_engine = MysqlEngine(instance=self.ins1)
-        wrong_sql = "-- 测试"
+        wrong_sql = "-- test"
         check_result = new_engine.query_check(db_name="some_db", sql=wrong_sql)
         self.assertDictEqual(
             check_result,
             {
                 "msg": "Unsupported query syntax!",
                 "bad_query": True,
-                "filtered_sql": "-- 测试",
+                "filtered_sql": "-- test",
                 "has_star": False,
             },
         )
@@ -324,8 +323,8 @@ class TestMysql(TestCase):
         row = ReviewResult(
             id=1,
             errlevel=2,
-            stagestatus="驳回不支持语句",
-            errormessage="仅支持DML和DDL语句，查询语句请使用SQL查询功能！",
+            stagestatus="Rejected unsupported statement",
+            errormessage="Only DML and DDL statements are supported; run queries via SQL query page.",
             sql=sql,
         )
         _inception_engine.return_value.execute_check.return_value = ReviewSet(
@@ -354,8 +353,38 @@ class TestMysql(TestCase):
         row = ReviewResult(
             id=1,
             errlevel=2,
-            stagestatus="驳回高危SQL",
-            errormessage="禁止提交匹配" + "^|update" + "条件的语句！",
+            stagestatus="Rejected critical SQL",
+            errormessage="Submitting statements matching " + "^|update" + " is forbidden.",
+            sql=sql,
+        )
+        _inception_engine.return_value.execute_check.return_value = ReviewSet(
+            full_sql=sql, rows=[inc_row]
+        )
+        new_engine = MysqlEngine(instance=self.ins1)
+        check_result = new_engine.execute_check(db_name="archery", sql=sql)
+        self.assertIsInstance(check_result, ReviewSet)
+        self.assertEqual(check_result.rows[0].__dict__, row.__dict__)
+
+    @patch("sql.engines.mysql.GoInceptionEngine")
+    def test_execute_check_critical_sql_partial_match(self, _inception_engine):
+        self.sys_config.set("goinception", "true")
+        self.sys_config.set("critical_ddl_regex", r"(?i)drop\s+column")
+        self.sys_config.get_all_config()
+        sql = "alter table users drop column email"
+        inc_row = ReviewResult(
+            id=1,
+            errlevel=0,
+            stagestatus="Audit completed",
+            errormessage="None",
+            sql=sql,
+            affected_rows=0,
+            execute_time="",
+        )
+        row = ReviewResult(
+            id=1,
+            errlevel=2,
+            stagestatus="Rejected critical SQL",
+            errormessage="Submitting statements matching " + r"(?i)drop\s+column" + " is forbidden.",
             sql=sql,
         )
         _inception_engine.return_value.execute_check.return_value = ReviewSet(
