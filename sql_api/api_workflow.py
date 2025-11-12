@@ -92,6 +92,8 @@ class WorkflowList(generics.ListAPIView):
         1、非管理员，拥有审核权限、资源组粒度执行权限的，可以查看组内所有工单
         2、管理员，审计员，可查看所有工单
         """
+        if getattr(self, "swagger_fake_view", False):
+            return SqlWorkflowContent.objects.none()
         filter_dict = {}
         user = self.request.user
         # 管理员，审计员，可查看所有工单
@@ -209,10 +211,12 @@ class WorkflowAuditList(generics.ListAPIView):
         return self.get_paginated_response(data)
 
 
-class AuditWorkflow(views.APIView):
+class AuditWorkflow(generics.GenericAPIView):
     """
     审核workflow，包括查询权限申请、SQL上线申请、数据归档申请
     """
+
+    serializer_class = AuditWorkflowSerializer
 
     @extend_schema(
         summary="审核工单",
@@ -299,10 +303,12 @@ class AuditWorkflow(views.APIView):
         return Response({"msg": success_message})
 
 
-class ExecuteWorkflow(views.APIView):
+class ExecuteWorkflow(generics.GenericAPIView):
     """
     执行workflow，包括SQL上线工单、数据归档工单
     """
+
+    serializer_class = ExecuteWorkflowSerializer
 
     @extend_schema(
         summary="执行工单",

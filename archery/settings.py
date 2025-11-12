@@ -291,9 +291,18 @@ REST_FRAMEWORK = {
 
 # Swagger UI
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Archery API",
+    "TITLE": "MySQL Studio API",
     "DESCRIPTION": "OpenAPI 3.0",
     "VERSION": "1.0.0",
+    "ENUM_NAME_OVERRIDES": {
+        "WorkflowTypeEnum": "common.utils.const.WorkflowType",
+        "WorkflowExecuteModeEnum": [("auto", "auto"), ("manual", "manual")],
+        "InstanceModeEnum": [("standalone", "单机"), ("cluster", "集群")],
+        "InstanceTypeEnum": [("master", "主库"), ("slave", "从库")],
+        "CloudProviderEnum": [("aliyun", "aliyun")],
+        "ArchiveModeEnum": [("file", "文件"), ("dest", "其他实例"), ("purge", "直接删除")],
+        "BooleanYesNoEnum": [(0, "否"), (1, "是")],
+    },
 }
 
 # API Authentication

@@ -240,12 +240,13 @@ class ResourceGroupDetail(views.APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class UserAuth(views.APIView):
+class UserAuth(generics.GenericAPIView):
     """
     用户认证校验
     """
 
     permission_classes = [IsOwner]
+    serializer_class = UserAuthSerializer
 
     @extend_schema(
         summary="用户认证校验", request=UserAuthSerializer, description="用户认证校验"
@@ -267,12 +268,13 @@ class UserAuth(views.APIView):
         return Response(result)
 
 
-class TwoFA(views.APIView):
+class TwoFA(generics.GenericAPIView):
     """
     配置2fa
     """
 
     permission_classes = [permissions.AllowAny]
+    serializer_class = TwoFASerializer
 
     @extend_schema(summary="配置2fa", request=TwoFASerializer, description="配置2fa")
     def post(self, request):
@@ -317,12 +319,13 @@ class TwoFA(views.APIView):
         return Response(result)
 
 
-class TwoFAState(views.APIView):
+class TwoFAState(generics.GenericAPIView):
     """
     查询用户2fa配置情况
     """
 
     permission_classes = [IsOwner]
+    serializer_class = TwoFAStateSerializer
 
     @extend_schema(
         summary="查询2fa配置情况",
@@ -349,12 +352,13 @@ class TwoFAState(views.APIView):
         return Response(result)
 
 
-class TwoFASave(views.APIView):
+class TwoFASave(generics.GenericAPIView):
     """
     保存2fa配置（TOTP)
     """
 
     permission_classes = [IsOwner]
+    serializer_class = TwoFASaveSerializer
 
     @extend_schema(
         summary="保存2fa配置", request=TwoFASaveSerializer, description="保存2fa配置"
@@ -380,12 +384,13 @@ class TwoFASave(views.APIView):
         return Response(result)
 
 
-class TwoFAVerify(views.APIView):
+class TwoFAVerify(generics.GenericAPIView):
     """
     检验2fa密码
     """
 
     permission_classes = [permissions.AllowAny]
+    serializer_class = TwoFAVerifySerializer
 
     @extend_schema(
         summary="检验2fa密码", request=TwoFAVerifySerializer, description="检验2fa密码"
