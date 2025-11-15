@@ -1042,16 +1042,7 @@
                 var sqlContent = editor.getValue();
 
             }
-            if (optgroup === "Oracle") {
-                //查看执行计划
-                if (sql === 'explain') {
-                    sqlContent = 'explain plan for ' + sqlContent
-                }
-                //查看表结构
-                else if (sql === 'show create table') {
-                    sqlContent = "desc " + $("#table_name").val() + ";"
-                }
-            } else if (optgroup === "MySQL" || optgroup === "PgSQL" ) {
+        if (optgroup === "MySQL" || optgroup === "PgSQL" ) {
                 //查看执行计划
                 if (sql === 'explain') {
                     sqlContent = 'explain ' + sqlContent

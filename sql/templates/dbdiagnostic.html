@@ -26,7 +26,6 @@
                         data-live-search="true">
                         <optgroup id="optgroup-mysql" label="MySQL"></optgroup>
                         <optgroup id="optgroup-mongo" label="MongoDB"></optgroup>
-                        <optgroup id="optgroup-oracle" label="Oracle"></optgroup>
                         <optgroup id="optgroup-redis" label="Redis"></optgroup>
                         <optgroup id="optgroup-pgsql" label="PgSQL"></optgroup>
                         <optgroup id="optgroup-doris" label="Doris"></optgroup>
@@ -120,9 +119,6 @@
         }
         if (typeof redisDiagnosticInfo !== "undefined" && Array.isArray(redisDiagnosticInfo.fieldsProcesslist)) {
             processListTableInfos.push(redisDiagnosticInfo?.fieldsProcesslist);
-        }
-        if (typeof oracleDiagnosticInfo !== "undefined" && Array.isArray(oracleDiagnosticInfo.fieldsProcesslist)) {
-            processListTableInfos.push(oracleDiagnosticInfo?.fieldsProcesslist);
         }
         if (typeof dorisDiagnosticInfo !== "undefined" && Array.isArray(dorisDiagnosticInfo.fieldsProcesslist)) {
             processListTableInfos.push(dorisDiagnosticInfo?.fieldsProcesslist);
@@ -226,29 +222,7 @@
                      field: 'pct_free'
                  }]
             ],
-            [
-                'oracle',
-                [{
-                    title: '表空间名',
-                    field: 'TABLESPACE_NAME'
-                }, {
-                    title: '表空间类型',
-                    field: 'TABLESPACE_TYPE'
-                }, {
-                    title: '状态',
-                    field: 'STATUS'
-                }, {
-                    title: '总空间(MB)',
-                    field: 'TOTAL_SPACE'
-                }, {
-                    title: '已使用空间(MB)',
-                    field: 'USED_SPACE'
-                }, {
-                    title: '使用率(%)',
-                    field: 'PCT_USED'
-                }]
             ]
-        ]
         let dorisTableInfo = ['doris',tablespaceListTableInfos[0][1]]
         tablespaceListTableInfos.push(dorisTableInfo)
 
@@ -517,59 +491,6 @@
                     });
                     return html.join('');
                 }
-            ],
-            [
-                'oracle',
-                [{
-                    title: 'USERNAME',
-                    field: 'USERNAME'
-                }, {
-                    title: 'OBJECT_OWNER',
-                    field: 'OBJECT_OWNER'
-                }, {
-                    title: 'OBJECT_ID',
-                    field: 'OBJECT_ID'
-                }, {
-                    title: 'OBJECT_NAME',
-                    field: 'OBJECT_NAME'
-                }, {
-                    title: 'LOCKED_MODE',
-                    field: 'LOCKED_MODE'
-                }, {
-                    title: 'RELATED_SID',
-                    field: 'RELATED_SID'
-                }, {
-                    title: 'RELATED_SERIAL#',
-                    field: 'RELATED_SERIAL#'
-                }, {
-                    title: 'MACHINE',
-                    field: 'MACHINE'
-                }, {
-                    title: 'RELATED_SQL',
-                    field: 'RELATED_SQL'
-                }, {
-                    title: 'RELATED_SQL_FULL',
-                    field: 'RELATED_SQL_FULL',
-                    visible: false
-                }, {
-                    title: 'RELATED_SQL_EXEC_START',
-                    field: 'RELATED_SQL_EXEC_START'
-                }],
-                 function (index, row) {
-                    var html = [];
-                    $.each(row, function (key, value) {
-                        if (key === 'RELATED_SQL_FULL') {
-                            var sql = window.sqlFormatter.format(value);
-                            //替换所有的换行符
-                            sql = sql.replace(/\r\n/g, "<br>");
-                            sql = sql.replace(/\n/g, "<br>");
-                            //替换所有的空格
-                            sql = sql.replace(/\s/g, "&nbsp;");
-                            html.push('<span>' + sql + '</span>');
-                        }
-                    });
-                    return html.join('');
-                }
             ]
         ]
 
@@ -644,8 +565,6 @@
                             AllSelectionIds.push(AllSelections[i]['id'])    // mysql
                         } else if (AllSelections[i]['opid']) {
                             AllSelectionIds.push(AllSelections[i]['opid'])  // mongo
-                        } else if (AllSelections[i]['SID']) {
-                            AllSelectionIds.push([AllSelections[i]['SID'],AllSelections[i]['SERIAL#']])  // oracle
                         }
                     }
                     var instance_name = $("#instance_name").val();
@@ -693,8 +612,6 @@
                         AllSelectionIds.push(AllSelections[i]['id'])    // mysql
                     } else if (AllSelections[i]['opid']) {
                         AllSelectionIds.push(AllSelections[i]['opid'])  // mongo
-                    } else if (AllSelections[i]['SID']) {
-                        AllSelectionIds.push([AllSelections[i]['SID'],AllSelections[i]['SERIAL#']])  // oracle
                     }
                 }
                 var instance_name = $("#instance_name").val();
@@ -734,7 +651,7 @@
                 //获取用户实例列表
                 $(function () {
                     // 会话管理-支持的数据库类型
-                    supportedDbType=['mysql','mongo', 'oracle','redis','pgsql','doris']
+                    supportedDbType=['mysql','mongo','redis','pgsql','doris']
                     $.ajax({
                         type: "get",
                         url: "/group/user_all_instances/",
@@ -856,4 +773,3 @@
         });
     </script>
 {% endblock %}
-

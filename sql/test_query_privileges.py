@@ -751,7 +751,7 @@ class TestQueryPrivilegesCheck(TestCase):
         mssql_instance = Instance(
             instance_name="mssql",
             type="slave",
-            db_type="oracle",
+            db_type="mssql",
             host="some_host",
             port=3306,
             user="some_user",

@@ -16,7 +16,6 @@ pyodbc==5.*
 gunicorn==23.*
 pyecharts==2.*
 aliyun-python-sdk-rds==2.*
-cx-Oracle==8.*
 supervisor==4.*
 phoenixdb==1.*
 django-mirage-field==1.*

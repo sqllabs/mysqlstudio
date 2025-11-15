@@ -39,9 +39,6 @@ def get_syntax_type(sql, parser=True, db_type="mysql"):
         if db_type == "mysql":
             ddl_re = r"^alter|^create|^drop|^rename|^truncate"
             dml_re = r"^call|^delete|^do|^handler|^insert|^load\s+data|^load\s+xml|^replace|^select|^update"
-        elif db_type == "oracle":
-            ddl_re = r"^alter|^create|^drop|^rename|^truncate"
-            dml_re = r"^delete|^exec|^insert|^select|^update|^with|^merge"
         else:
             # TODO 其他数据库的解析正则
             return None
@@ -63,10 +60,9 @@ def remove_comments(sql, db_type="mysql"):
     :return:
     """
     sql_comments_re = {
-        "oracle": [r"(?:--)[^\n]*\n", r"(?:\W|^)(?:remark|rem)\s+[^\n]*\n"],
         "mysql": [r"(?:#|--\s)[^\n]*\n"],
     }
-    specific_comment_re = sql_comments_re[db_type]
+    specific_comment_re = sql_comments_re.get(db_type, sql_comments_re["mysql"])
     additional_patterns = "|"
     if isinstance(specific_comment_re, str):
         additional_patterns += specific_comment_re

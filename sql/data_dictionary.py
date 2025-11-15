@@ -125,7 +125,7 @@ def export(request):
 
     try:
         instance = user_instances(
-            request.user, db_type=["mysql", "mssql", "oracle"]
+            request.user, db_type=["mysql", "mssql"]
         ).get(instance_name=instance_name)
         query_engine = get_engine(instance=instance)
     except Instance.DoesNotExist:

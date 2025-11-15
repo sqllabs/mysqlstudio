@@ -242,7 +242,7 @@ def simple_column_mask(instance, sql_result):
     """
     # 获取当前实例脱敏字段信息，减少循环查询，提升效率
     masking_columns = DataMaskingColumns.objects.filter(instance=instance, active=True)
-    # 转换sql输出字段名为小写, 适配oracle脱敏
+    # 转换SQL输出字段名为小写，便于字段匹配
     sql_result_column_list = [c.lower() for c in sql_result.column_list]
     if masking_columns:
         try:

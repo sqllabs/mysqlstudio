@@ -194,9 +194,6 @@ $("#instance_name").change(function () {
     } else if (optgroup === "PgSQL") {
         editor.setTheme("ace/theme/" + "textmate");
         editor.session.setMode("ace/mode/" + "pgsql");
-    } else if (optgroup === "Oracle") {
-        editor.setTheme("ace/theme/" + "textmate");
-        editor.session.setMode("ace/mode/" + "sql");
     } else if (optgroup === "Mongo") {
         editor.setTheme("ace/theme/" + "textmate");
         editor.session.setMode("ace/mode/" + "mongodb");

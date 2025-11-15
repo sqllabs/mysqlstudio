@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import timedelta
 import requests
 import logging
+from urllib.parse import urlparse
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -99,7 +100,6 @@ AVAILABLE_ENGINES = {
     "mssql": {"path": "sql.engines.mssql:MssqlEngine"},
     "redis": {"path": "sql.engines.redis:RedisEngine"},
     "pgsql": {"path": "sql.engines.pgsql:PgSQLEngine"},
-    "oracle": {"path": "sql.engines.oracle:OracleEngine"},
     "mongo": {"path": "sql.engines.mongo:MongoEngine"},
     "phoenix": {"path": "sql.engines.phoenix:PhoenixEngine"},
     "odps": {"path": "sql.engines.odps:ODPSEngine"},
@@ -131,7 +131,6 @@ ENABLED_ENGINES = get_list(
         "mssql",
         "redis",
         "pgsql",
-        "oracle",
         "mongo",
         "phoenix",
         "odps",
@@ -251,16 +250,27 @@ SESSION_COOKIE_AGE = 60 * 300  # 300 minutes
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expire cookies when the browser closes
 
+def parse_database_url(url: str):
+    parsed = urlparse(url)
+    return {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": parsed.path.lstrip("/") or "mysql",
+        "USER": parsed.username or "",
+        "PASSWORD": parsed.password or "",
+        "HOST": parsed.hostname or "172.18.0.31",
+        "PORT": str(parsed.port or 3306),
+        "OPTIONS": {"charset": parsed.query.split("charset=")[-1] if "charset=" in parsed.query else "utf8mb4"},
+    }
+
+
+DATABASE_URL = get_str(
+    "DATABASE_URL",
+    default="mysql://mysqlstudio:MySQL8.4.7@172.18.0.31:3306/mysqlstudio",
+)
+
 # Primary MySQL connection used by this project
 DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mysqlstudio',
-        'USER': 'mysqlstudio',
-        'PASSWORD': 'MySQLStudio1.13.1',
-        'HOST': '172.18.0.31',
-        'PORT': '3306',
-    }
+    "default": parse_database_url(DATABASE_URL),
 }
 
 # Django-Q
@@ -278,15 +288,21 @@ Q_CLUSTER = {
     "sync": get_bool("Q_CLUISTER_SYNC", default=False),  # Set True during local debugging to run in sync mode
 }
 
+REDIS_URL = get_str(
+    "CACHE_URL", default="redis://:MySQL8.4.7@172.18.0.32:6379/13"
+)
+redis_parsed = urlparse(REDIS_URL)
+redis_location = f"redis://{redis_parsed.hostname or '172.18.0.32'}:{redis_parsed.port or 6379}{redis_parsed.path or '/0'}"
+
 # Cache configuration
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://172.18.0.32:6379/13",
+        "LOCATION": redis_location,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": "MySQLStudio1.13.1"
-        }
+            "PASSWORD": redis_parsed.password or "",
+        },
     }
 }
 

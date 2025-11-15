@@ -759,7 +759,7 @@
     "rule_desc" : "重复查询子句", 
     "rule_name" : "SUBQUERY_REP", 
     "rule_status" : "ON", 
-    "rule_summary" : "禁止使用重复的查询子句，应使用with as替换子句(仅限Oracle)来提升SQL执行效率", 
+    "rule_summary" : "禁止使用重复的查询子句，应使用with as替换子句来提升SQL执行效率", 
     "rule_type" : "TEXT", 
     "solution" : [
         "1.withas", 

@@ -145,7 +145,6 @@ DB_TYPE_CHOICES = (
     ("mssql", "MsSQL"),
     ("redis", "Redis"),
     ("pgsql", "PgSQL"),
-    ("oracle", "Oracle"),
     ("mongo", "Mongo"),
     ("phoenix", "Phoenix"),
     ("odps", "ODPS"),
@@ -243,10 +242,6 @@ class Instance(models.Model, PasswordMixin):
     )
 
     charset = models.CharField("字符集", max_length=20, default="", blank=True)
-    service_name = models.CharField(
-        "Oracle service name", max_length=50, null=True, blank=True
-    )
-    sid = models.CharField("Oracle sid", max_length=50, null=True, blank=True)
     resource_group = models.ManyToManyField(
         ResourceGroup, verbose_name="资源组", blank=True
     )

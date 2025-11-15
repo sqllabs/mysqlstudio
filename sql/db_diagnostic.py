@@ -99,8 +99,6 @@ def kill_session(request):
         r = engine.kill(json.loads(thread_ids))
     elif instance.db_type == "mongo":
         r = engine.kill_op(json.loads(thread_ids))
-    elif instance.db_type == "oracle":
-        r = engine.kill_session(json.loads(thread_ids))
     else:
         result = {
             "status": 1,
@@ -170,8 +168,6 @@ def trxandlocks(request):
     query_engine = get_engine(instance=instance)
     if instance.db_type == "mysql":
         query_result = query_engine.trxandlocks()
-    elif instance.db_type == "oracle":
-        query_result = query_engine.lock_info()
     else:
         result = {
             "status": 1,

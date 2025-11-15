@@ -24,9 +24,6 @@
                                 <dd>[MySQL]MySQLTuning：
                                     <a href="http://dbaplus.cn/blog-77-736-1.html">查看介绍</a>
                                 </dd>
-                                <dd>[ORACLE]SQL Tuning Advisor：
-                                    <a href="https://docs.oracle.com/database/121/TGSQL/tgsql_sqltune.htm#TGSQL540">查看介绍</a>
-                                </dd>
                             </dl>
                         </div>
                         <div class="col-md-3 column">
@@ -37,7 +34,6 @@
                                         title="请选择实例:"
                                         data-placeholder="请选择实例:" required>
                                     <optgroup id="optgroup-mysql" label="MySQL"></optgroup>
-                                    <optgroup id="optgroup-oracle" label="Oracle"></optgroup>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -118,11 +114,6 @@
                     <div id="explain_result" style="display:none;" class="form-group table-responsive">
                         <table id="tb_explain" data-toggle="table" class="table table-condensed"
                                style="table-layout:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></table>
-                    </div>
-                    <!-- SQLTuningAdvisor报告 -->
-                    <div id="sqltuningadvisor_result" style="display:none;" class="form-group table-responsive">
-                        <div id="sqltuningadvisor_result_col" class="col-md-12">
-                        </div>
                     </div>
                     <!-- soar报告 -->
                     <div id="soar-result" style="display:none;" class="form-group">
@@ -264,11 +255,6 @@
                 $("#div_tuning").hide();
                 $("#div_verbose").hide();
             }
-            //SQLTuningAdvisor
-            else if ($("#tools").val() === '4') {
-                $("#div_tuning").hide();
-                $("#div_verbose").hide();
-            }
         });
 
         // 表单校验
@@ -303,8 +289,6 @@
                         tunning();
                     } else if (($("#tools").val() === '3')) {
                         soar();
-                    } else if (($("#tools").val() === '4')) {
-                        SQLTuningAdvisor();
                     }
                 }
             }
@@ -338,20 +322,13 @@
 
         //实例变动获取数据库
         $("#instance_name").change(function () {
-            var optgroup = $('#instance_name :selected').parent().attr('label');
             $("#tools").empty();
             $('#tools').selectpicker('render');
             $('#tools').selectpicker('refresh');
             var obj = document.getElementById("tools");
-            if (optgroup === "Oracle") {
-                //oracle优化工具
-                obj.options.add(new Option("SQLTuningAdvisor", "4", true, true));
-            } else if (optgroup === "MySQL") {
-                //mysql优化工具
-                obj.options.add(new Option("SQLAdvisor", "1", true, true));
-                obj.options.add(new Option("SQLTuning", "2"));
-                obj.options.add(new Option("SOAR", "3"));
-            }
+            obj.options.add(new Option("SQLAdvisor", "1", true, true));
+            obj.options.add(new Option("SQLTuning", "2"));
+            obj.options.add(new Option("SOAR", "3"));
             $('#tools').selectpicker('render');
             $('#tools').selectpicker('refresh');
             get_db_list();
@@ -412,72 +389,6 @@
             });
         }
 
-        // SQLTuningAdvisor展示数据
-        function SQLTuningAdvisor() {
-            $('input[type=button]').addClass('disabled');
-            $('input[type=button]').prop('disabled', true);
-            var columns = [];
-            $.ajax({
-                type: "post",
-                url: "/slowquery/optimize_sqltuningadvisor/",
-                dataType: 'json',
-                data: {
-                    sql_content: editor.getValue(),
-                    instance_name: $("#instance_name").val(),
-                    schema_name: $("#db_name").val()
-                },
-                complete: function () {
-                    $('input[type=button]').removeClass('disabled');
-                    $('input[type=button]').prop('disabled', false);
-                },
-                success: function (data) {
-                    if (data.status === 0) {
-                        var result = data.data;
-                        if (result['Error']) {
-                            result = result['Error']
-                            alertStyle = "alert-danger";
-                            finalHtml = '';
-                            finalHtml += "<div class='alert alert-dismissable " + alertStyle + "'> " +
-                                "<table class='' width='100%' style='table-layout:fixed;'> " +
-                                "<tbody><tr>" +
-                                "<td>" + result + "</td>" +
-                                "</tr> </tbody></table> </div>";
-                            $("#sqltuningadvisor_result_col").html(finalHtml);
-                        } else if (result['column_list']) {
-                            result = result['rows'];
-                            var result_str = JSON.stringify(result);
-                            //替换所有的\n换行符
-                            result_str = result_str.replace(/\\n/g, "<br>");
-                            //替换所有的空格
-                            result_str = result_str.replace(/\s/g, "&nbsp;");
-                            //去掉双引号强制转换符
-                            result_str = result_str.replace(/\\"/g, "\"");
-                            alertStyle = "alert-success";
-                            finalHtml = '';
-                            finalHtml += "<div class='alert alert-dismissable " + alertStyle + "'> " +
-                                "<table class='' width='100%' style='table-layout:fixed;'> " +
-                                "<tbody><tr>" +
-                                "<td>" + result_str + "</td>" +
-                                "</tr> </tbody></table> </div>";
-                            $("#sqltuningadvisor_result_col").html(finalHtml);
-                        }
-                        $("#sqltuningadvisor_result").show();
-                        $("#explain_result").hide();
-                        $("#sqladvisor-result").hide();
-                        $("#tuning_result").hide();
-                        $("#soar-result").hide();
-
-                    } else {
-                        alert(data.msg);
-                    }
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    alert(errorThrown);
-                }
-            })
-            ;
-        }
-
         //获取查询建议
         function sqladvisor() {
             $('input[type=button]').addClass('disabled');
@@ -521,7 +432,6 @@
                         $("#explain_result").hide();
                         $("#tuning_result").hide();
                         $("#soar-result").hide();
-                        $("#sqltuningadvisor_result").hide();
                     } else {
                         alert(data.msg);
                     }
@@ -536,13 +446,7 @@
         function explain() {
             $('input[type=button]').addClass('disabled');
             $('input[type=button]').prop('disabled', true);
-            var optgroup = $('#instance_name :selected').parent().attr('label');
-            let prefix = '';
-            if (optgroup === "Oracle") {
-                prefix = 'explain plan for '
-            } else if (optgroup === "MySQL") {
-                prefix = 'explain '
-            }
+            let prefix = 'explain ';
             $.ajax({
                 type: "post",
                 url: "/query/explain/",
@@ -613,7 +517,6 @@
                 $("#sqladvisor-result").hide();
                 $("#tuning_result").hide();
                 $("#soar-result").hide();
-                $("#sqltuningadvisor_result").hide();
             } else {
                 alert(data.msg);
             }
@@ -666,7 +569,6 @@
                         $("#sqladvisor-result").hide();
                         $("#explain_result").hide();
                         $("#tuning_result").hide();
-                        $("#sqltuningadvisor_result").hide();
                     } else {
                         alert(data.msg);
                     }
@@ -978,7 +880,6 @@
                         $("#sqladvisor-result").hide();
                         $("#explain_result").hide();
                         $("#soar-result").hide();
-                        $("#sqltuningadvisor_result").hide();
 
                     } else {
                         alert(data.msg);
@@ -998,7 +899,7 @@
                     url: "/group/user_all_instances/",
                     dataType: "json",
                     data: {
-                        db_type: ['mysql', 'oracle']
+                        db_type: ['mysql']
                     },
                     complete: function () {
                         //适配从慢查询过来的优化请求
@@ -1026,14 +927,12 @@
                         if (data.status === 0) {
                             let result = data['data'];
                             $("#optgroup-mysql").empty();
-                            $("#optgroup-oracle").empty();
                             for (let i = 0; i < result.length; i++) {
-                                let instance = "<option value=\"" + result[i]['instance_name'] + "\">" + result[i]['instance_name'] + "</option>";
-                                if (result[i]['db_type'] === 'mysql') {
-                                    $("#optgroup-mysql").append(instance);
-                                } else if (result[i]['db_type'] === 'oracle') {
-                                    $("#optgroup-oracle").append(instance);
+                                if (result[i]['db_type'] !== 'mysql') {
+                                    continue;
                                 }
+                                let instance = "<option value=\"" + result[i]['instance_name'] + "\">" + result[i]['instance_name'] + "</option>";
+                                $("#optgroup-mysql").append(instance);
                             }
                             $('#instance_name').selectpicker('render');
                             $('#instance_name').selectpicker('refresh');
