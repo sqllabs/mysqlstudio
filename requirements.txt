@@ -12,7 +12,6 @@ mysql-replication==1.*
 django-q2==1.*
 django-redis==6.*
 redis==7.*
-pyodbc==5.*
 gunicorn==23.*
 pyecharts==2.*
 aliyun-python-sdk-rds==2.*

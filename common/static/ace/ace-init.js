@@ -176,9 +176,6 @@ $("#instance_name").change(function () {
             editor.clearSelection();
             editor.focus();  //获取焦点
         }
-    } else if (optgroup === "MsSQL") {
-        editor.setTheme("ace/theme/" + "sqlserver");
-        editor.session.setMode("ace/mode/" + "sqlserver");
     } else if (optgroup === "Redis") {
         editor.setTheme("ace/theme/" + "textmate");
         editor.session.setMode("ace/mode/" + "text");

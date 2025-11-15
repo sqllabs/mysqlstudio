@@ -97,7 +97,6 @@ AVAILABLE_ENGINES = {
     "cassandra": {"path": "sql.engines.cassandra:CassandraEngine"},
     "clickhouse": {"path": "sql.engines.clickhouse:ClickHouseEngine"},
     "goinception": {"path": "sql.engines.goinception:GoInceptionEngine"},
-    "mssql": {"path": "sql.engines.mssql:MssqlEngine"},
     "redis": {"path": "sql.engines.redis:RedisEngine"},
     "pgsql": {"path": "sql.engines.pgsql:PgSQLEngine"},
     "mongo": {"path": "sql.engines.mongo:MongoEngine"},
@@ -128,7 +127,6 @@ ENABLED_ENGINES = get_list(
         "mysql",
         "clickhouse",
         "goinception",
-        "mssql",
         "redis",
         "pgsql",
         "mongo",
@@ -215,9 +213,14 @@ STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [
     BASE_DIR / "common" / "static",
 ]
+STATICFILES_BACKEND = get_str(
+    "STATICFILES_BACKEND",
+    default="django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+)
+
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        "BACKEND": STATICFILES_BACKEND,
     }
 }
 

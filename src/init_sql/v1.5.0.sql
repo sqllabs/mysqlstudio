@@ -46,7 +46,7 @@ ALTER TABLE query_privileges
 -- 实例参数配置功能
 CREATE TABLE param_template(
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-  db_type VARCHAR(10) NOT NULL COMMENT '数据库类型，mysql、mssql、redis、pgsql',
+  db_type VARCHAR(10) NOT NULL COMMENT '数据库类型，mysql、redis、pgsql',
   variable_name VARCHAR(64) NOT NULL COMMENT '参数名',
   default_value VARCHAR(1024) NOT NULL COMMENT '默认参数值',
   editable TINYINT NOT NULL COMMENT '是否支持修改',

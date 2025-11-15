@@ -86,12 +86,11 @@ def table_info(request):
                 db_name=db_name, tb_name=tb_name
             )
 
-            # mysql数据库可以获取创建表格的SQL语句，mssql暂无找到生成创建表格的SQL语句
-            if instance.db_type == "mysql":
-                _create_sql = query_engine.query(
-                    db_name, "show create table `%s`;" % tb_name
-                )
-                data["create_sql"] = _create_sql.rows
+            # mysql数据库可以获取创建表格的SQL语句
+            _create_sql = query_engine.query(
+                db_name, "show create table `%s`;" % tb_name
+            )
+            data["create_sql"] = _create_sql.rows
             res = {"status": 0, "data": data}
         except Instance.DoesNotExist:
             res = {"status": 1, "msg": "Instance.DoesNotExist"}
@@ -125,7 +124,7 @@ def export(request):
 
     try:
         instance = user_instances(
-            request.user, db_type=["mysql", "mssql"]
+            request.user, db_type=["mysql"]
         ).get(instance_name=instance_name)
         query_engine = get_engine(instance=instance)
     except Instance.DoesNotExist:

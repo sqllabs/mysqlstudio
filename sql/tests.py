@@ -481,7 +481,7 @@ class TestQuery(TransactionTestCase):
         self.slave2 = Instance(
             instance_name="test_instance_non_mysql",
             type="slave",
-            db_type="mssql",
+            db_type="redis",
             host="some_host2",
             port=3306,
             user="some_user",
@@ -2155,5 +2155,3 @@ class TestDataDictionary(TestCase):
         }
         r = self.client.get(path="/data_dictionary/export/", data=data)
         self.assertEqual(r.json()["status"], 1)
-
-    @patch("sql.data_dictionary.get_engine")

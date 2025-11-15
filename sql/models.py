@@ -142,7 +142,6 @@ class InstanceTag(models.Model):
 
 DB_TYPE_CHOICES = (
     ("mysql", "MySQL"),
-    ("mssql", "MsSQL"),
     ("redis", "Redis"),
     ("pgsql", "PgSQL"),
     ("mongo", "Mongo"),

@@ -721,10 +721,10 @@ class TestQueryPrivilegesCheck(TestCase):
         测试用户权限校验，非mysql实例、普通用户 有库权限
         :return:
         """
-        mssql_instance = Instance(
-            instance_name="mssql",
+        redis_instance = Instance(
+            instance_name="redis",
             type="slave",
-            db_type="mssql",
+            db_type="redis",
             host="some_host",
             port=3306,
             user="some_user",
@@ -732,7 +732,7 @@ class TestQueryPrivilegesCheck(TestCase):
         )
         r = sql.query_privileges.query_priv_check(
             user=self.user,
-            instance=mssql_instance,
+            instance=redis_instance,
             db_name=self.db_name,
             sql_content="select * from archery.sql_users;",
             limit_num=100,
@@ -748,10 +748,10 @@ class TestQueryPrivilegesCheck(TestCase):
         测试用户权限校验，非mysql实例、普通用户 无库权限
         :return:
         """
-        mssql_instance = Instance(
-            instance_name="mssql",
+        redis_instance = Instance(
+            instance_name="redis",
             type="slave",
-            db_type="mssql",
+            db_type="redis",
             host="some_host",
             port=3306,
             user="some_user",
@@ -759,7 +759,7 @@ class TestQueryPrivilegesCheck(TestCase):
         )
         r = sql.query_privileges.query_priv_check(
             user=self.user,
-            instance=mssql_instance,
+            instance=redis_instance,
             db_name=self.db_name,
             sql_content="select * from archery.sql_users;",
             limit_num=100,
@@ -768,7 +768,7 @@ class TestQueryPrivilegesCheck(TestCase):
             r,
             {
                 "data": {"limit_num": 0, "priv_check": True},
-                "msg": "你无archery数据库的查询权限！请先到查询权限管理进行申请",
+                "msg": f"你无{self.db_name}数据库的查询权限！请先到查询权限管理进行申请",
                 "status": 2,
             },
         )
