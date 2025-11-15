@@ -95,7 +95,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 15728640
 AVAILABLE_ENGINES = {
     "mysql": {"path": "sql.engines.mysql:MysqlEngine"},
     "cassandra": {"path": "sql.engines.cassandra:CassandraEngine"},
-    "clickhouse": {"path": "sql.engines.clickhouse:ClickHouseEngine"},
     "goinception": {"path": "sql.engines.goinception:GoInceptionEngine"},
     "redis": {"path": "sql.engines.redis:RedisEngine"},
     "pgsql": {"path": "sql.engines.pgsql:PgSQLEngine"},
@@ -123,7 +122,6 @@ ENABLED_ENGINES = get_list(
     "ENABLED_ENGINES",
     default=[
         "mysql",
-        "clickhouse",
         "goinception",
         "redis",
         "pgsql",

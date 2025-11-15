@@ -36,7 +36,6 @@ AVAILABLE_ENGINES = {
     "mysql": {"path": "sql.engines.mysql:MysqlEngine"},
     # 这里改成你的 engine
     "cassandra": {"path": "extras.mycassandra:MyCassandraEngine"},
-    "clickhouse": {"path": "sql.engines.clickhouse:ClickHouseEngine"},
     "goinception": {"path": "sql.engines.goinception:GoInceptionEngine"},
     "redis": {"path": "sql.engines.redis:RedisEngine"},
     "pqsql": {"path": "sql.engines.pgsql:PgSQLEngine"},
