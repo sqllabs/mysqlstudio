@@ -16,7 +16,6 @@ gunicorn==23.*
 pyecharts==2.*
 aliyun-python-sdk-rds==2.*
 supervisor==4.*
-phoenixdb==1.*
 django-mirage-field==1.*
 schema-sync==0.*
 parsedatetime==2.*

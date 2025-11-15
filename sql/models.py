@@ -145,7 +145,6 @@ DB_TYPE_CHOICES = (
     ("redis", "Redis"),
     ("pgsql", "PgSQL"),
     ("mongo", "Mongo"),
-    ("phoenix", "Phoenix"),
     ("odps", "ODPS"),
     ("clickhouse", "ClickHouse"),
     ("goinception", "goInception"),
