@@ -41,6 +41,5 @@ AVAILABLE_ENGINES = {
     "redis": {"path": "sql.engines.redis:RedisEngine"},
     "pqsql": {"path": "sql.engines.pgsql:PgSQLEngine"},
     "mongo": {"path": "sql.engines.mongo:MongoEngine"},
-    "odps": {"path": "sql.engines.odps:ODPSEngine"},
 }
 ```

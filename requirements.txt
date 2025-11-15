@@ -21,7 +21,6 @@ schema-sync==0.*
 parsedatetime==2.*
 sshtunnel==0.*
 pycryptodome==3.*
-pyodps==0.*
 numpy==2.*
 pandas==2.*
 clickhouse-driver==0.*
